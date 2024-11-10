@@ -52,12 +52,11 @@ const listingService = {
         }
     },
 
-    putListingData: async (data) => {
+    getEquipmentDetails: async () => {
         try {
-            const response = await axios.put(`${BASE_URL}/listing`, data, {
+            const response = await axios.get(`${BASE_URL}/equipment`, {
                 headers: {
                     // Authorization header if needed
-                    "Content-Type": "application/json",
                 },
                 withCredentials: true, // if we are using cookie-based sessions
             });
@@ -69,3 +68,5 @@ const listingService = {
         }
     },
 };
+
+module.exports = listingService;
