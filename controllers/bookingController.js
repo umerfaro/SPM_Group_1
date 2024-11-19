@@ -1,64 +1,189 @@
-const {responseUtils} = require("../utils");
-const {bookingService} = require("../services");
+const Booking = require('../models/Booking');
 
 const bookingController = {
-    getBookingData: async (req, res) => {
+    async getAllBookings(req, res, next) {
         try {
-            const response = await bookingService.getBookingData();
-            if (response.error) {
-                return responseUtils.handleFailure(res, response.error);
-            }
-            console.log(response.data);
+            // Extract search and filter parameters from the query string
+            const {
+                equipmentId,
+                renterId,
+                ownerId,
+                startDate,
+                endDate,
+                minTotalPrice,
+                maxTotalPrice,
+            } = req.query;
 
-            return responseUtils.handleSuccess(res, response.data, "Booking data fetched successfully");
+            let query = {};
+
+            // Filter by Equipment ID
+            if (equipmentId) {
+                query.equipment = equipmentId;
+            }
+
+            // Filter by Renter ID
+            if (renterId) {
+                query.renter = renterId;
+            }
+
+            // Filter by Owner ID
+            if (ownerId) {
+                query.owner = ownerId;
+            }
+
+            // Filter by Rental Period
+            if (startDate && endDate) {
+                query['rentalPeriod.startDate'] = { $lt: new Date(endDate) };
+                query['rentalPeriod.endDate'] = { $gt: new Date(startDate) };
+            }
+
+            // Filter by Total Price Range
+            if (minTotalPrice || maxTotalPrice) {
+                query.totalPrice = {};
+                if (minTotalPrice) {
+                    query.totalPrice.$gte = Number(minTotalPrice);
+                }
+                if (maxTotalPrice) {
+                    query.totalPrice.$lte = Number(maxTotalPrice);
+                }
+            }
+
+            // Fetch bookings based on the constructed query
+            const bookings = await Booking.find(query)
+                .populate('equipment renter owner');
+
+            res.json(bookings);
         } catch (error) {
-            console.log(error);
-            return responseUtils.handleFailure(res, error);
+            next({ status: 500, message: 'Internal Server Error', error });
         }
     },
 
-    getBookingDataById: async (req, res) => {
+    async getBookingById(req, res, next) {
         try {
-            const response = await bookingService.getBookingDataById(req.params.id);
-            if (response.error) {
-                return responseUtils.handleFailure(res, response.error);
-            }
-            console.log(response.data);
+            const booking = await Booking.findById(req.params.id)
+                .populate('equipment renter owner');
 
-            return responseUtils.handleSuccess(res, response.data, "Booking data fetched successfully");
+            if (!booking) {
+                return next({ status: 404, message: 'Booking not found' });
+            }
+            res.json(booking);
         } catch (error) {
-            console.log(error);
-            return responseUtils.handleFailure(res, error);
+            next({ status: 500, message: 'Internal Server Error', error });
         }
     },
 
-    postBookingData: async (req, res) => {
+    async createBooking(req, res, next) {
         try {
-            const response = await bookingService.postBookingData(req.body);
-            if (response.error) {
-                return responseUtils.handleFailure(res, response.error);
-            }
-            console.log(response.data);
+            const {
+                equipment,
+                renter,
+                owner,
+                rentalPeriod,
+                totalPrice,
+                pickupTime,
+            } = req.body;
 
-            return responseUtils.handleSuccess(res, response.data, "Booking data posted successfully");
+            // Check if the equipment is available during the requested period
+            const conflictingBooking = await Booking.findOne({
+                equipment,
+                'rentalPeriod.startDate': { $lt: new Date(rentalPeriod.endDate) },
+                'rentalPeriod.endDate': { $gt: new Date(rentalPeriod.startDate) },
+            });
+
+            if (conflictingBooking) {
+                return next({
+                    status: 400,
+                    message: 'Equipment is not available during the selected period',
+                });
+            }
+
+            const booking = new Booking({
+                equipment,
+                renter,
+                owner,
+                rentalPeriod,
+                totalPrice,
+                pickupTime,
+            });
+
+            await booking.save();
+            res.status(201).json(booking);
         } catch (error) {
-            console.log(error);
-            return responseUtils.handleFailure(res, error);
+            if (error.name === 'ValidationError') {
+                next({ status: 400, message: 'Validation Error', error });
+            } else {
+                next({ status: 500, message: 'Internal Server Error', error });
+            }
         }
     },
 
-    putBookingData: async (req, res) => {
+    async updateBooking(req, res, next) {
         try {
-            const response = await bookingService.putBookingData(req.body);
-            if (response.error) {
-                return responseUtils.handleFailure(res, response.error);
-            }
-            console.log(response.data);
+            const {
+                equipment,
+                renter,
+                owner,
+                rentalPeriod,
+                totalPrice,
+                pickupTime,
+            } = req.body;
 
-            return responseUtils.handleSuccess(res, response.data, "Booking data updated successfully");
+            // Check if the equipment is available during the new requested period
+            const conflictingBooking = await Booking.findOne({
+                _id: { $ne: req.params.id }, // Exclude the current booking
+                equipment,
+                'rentalPeriod.startDate': { $lt: new Date(rentalPeriod.endDate) },
+                'rentalPeriod.endDate': { $gt: new Date(rentalPeriod.startDate) },
+            });
+
+            if (conflictingBooking) {
+                return next({
+                    status: 400,
+                    message: 'Equipment is not available during the selected period',
+                });
+            }
+
+            const booking = await Booking.findByIdAndUpdate(
+                req.params.id,
+                {
+                    equipment,
+                    renter,
+                    owner,
+                    rentalPeriod,
+                    totalPrice,
+                    pickupTime,
+                },
+                { new: true, runValidators: true }
+            );
+
+            if (!booking) {
+                return next({ status: 404, message: 'Booking not found' });
+            }
+            res.json(booking);
         } catch (error) {
-            console.log(error);
-            return responseUtils.handleFailure(res, error);
+            if (error.name === 'ValidationError') {
+                next({ status: 400, message: 'Validation Error', error });
+            } else {
+                next({
+                    status: 500,
+                    message: 'Internal Server Error',
+                    error,
+                });
+            }
+        }
+    },
+
+    async deleteBooking(req, res, next) {
+        try {
+            const booking = await Booking.findByIdAndDelete(req.params.id);
+            if (!booking) {
+                return next({ status: 404, message: 'Booking not found' });
+            }
+            res.json({ message: 'Booking deleted successfully' });
+        } catch (error) {
+            next({ status: 500, message: 'Internal Server Error', error });
         }
     },
 };
+
+module.exports = bookingController;

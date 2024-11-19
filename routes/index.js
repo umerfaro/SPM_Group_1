@@ -1,8 +1,12 @@
-const equipmentRoutes = require("./equipmentRoutes");
-// add more routes here
+const express = require('express');
+const equipmentRoutes = require('./equipmentRoutes');
 
-module.exports = {
-  dummyRoutes,
-  equipmentRoutes,
-  // export more routes here
-};
+
+
+const router = express.Router();
+
+
+router.use('/equipment', equipmentRoutes);
+
+
+module.exports = router;
