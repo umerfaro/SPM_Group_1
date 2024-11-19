@@ -1,20 +1,28 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
-// const cookieParser = require("cookie-parser");
+// app.js
+
+const express = require('express');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const connectDB = require('./config/db');
+const errorHandler = require('./middlewares/errorHandler');
+
 dotenv.config();
-const { equipmentRoutes /*, dummyRoutes2, dummyRoutes3 */ } = require("./routes");
+connectDB();
+
+const routes = require('./routes');
 
 const app = express();
-// app.use(cookieParser());
-app.use(express.json());
-app.use(express.json({ limit: "10mb" })); // if you want to send images or files to the server you need to increase the limit
+app.use(express.json({ limit: '10mb' }));
 app.use(cors({ origin: true, credentials: true }));
-app.use("/api", equipmentRoutes);
 
-app.get("/", (req, res) => {
-  res.send("Welcome to the Equipment Rental and Sharing Microservice");
+app.use('/api', routes);
+
+app.get('/', (req, res) => {
+  res.send('Welcome to the Equipment Rental and Sharing Service API');
 });
+
+// Error handling middleware
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
