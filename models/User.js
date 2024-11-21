@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
 
 const ContactInfoSchema = new mongoose.Schema({
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
+    email: { type: String, 
+        required: true },
+    phone: { type: String,
+         required: true },
 });
 
 const BusinessDetailsSchema = new mongoose.Schema({
@@ -11,15 +13,20 @@ const BusinessDetailsSchema = new mongoose.Schema({
 });
 
 const PersonalDetailsSchema = new mongoose.Schema({
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    contactInfo: { type: ContactInfoSchema, required: true },
-    address: { type: String, required: true },
+    firstName: { type: String, 
+        required: true },
+    lastName: { type: String, 
+        required: true },
+    contactInfo: { type: ContactInfoSchema, 
+        required: true },
+    address: { type: String,
+         required: true },
     businessDetails: BusinessDetailsSchema,
 });
 
 const PreferencesSchema = new mongoose.Schema({
-    notifications: { type: Boolean, default: true },
+    notifications: { type: Boolean, 
+        default: true },
 });
 
 const UserSchema = new mongoose.Schema({
