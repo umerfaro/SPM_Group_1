@@ -82,21 +82,7 @@ const userController = {
         }
     },
 
-    // Update user preferences
-    async updatePreferences(req, res, next) {
-        try {
-            const { notifications } = req.body;
-            const user = await User.findById(req.params.id);
-            if (!user) {
-                return next({ status: 404, message: 'User not found' });
-            }
-            user.preferences.notifications = notifications;
-            await user.save();
-            res.json(user);
-        } catch (error) {
-            next({ status: 500, message: 'Internal Server Error', error });
-        }
-    },
+   
     async updatePersonalDetails(req, res, next) {
         const { id } = req.params;
         const { firstName, lastName, contactInfo, address, businessDetails } = req.body;
@@ -119,6 +105,22 @@ const userController = {
             res.status(200).json({ message: 'Personal details updated successfully', user });
         } catch (error) {
             console.error(error);
+            next({ status: 500, message: 'Internal Server Error', error });
+        }
+    },
+
+     // Update user preferences
+     async updatePreferences(req, res, next) {
+        try {
+            const { notifications } = req.body;
+            const user = await User.findById(req.params.id);
+            if (!user) {
+                return next({ status: 404, message: 'User not found' });
+            }
+            user.preferences.notifications = notifications;
+            await user.save();
+            res.json(user);
+        } catch (error) {
             next({ status: 500, message: 'Internal Server Error', error });
         }
     },

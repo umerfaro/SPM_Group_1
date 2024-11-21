@@ -6,9 +6,11 @@ const reviewRoutes = require('./reviewRoutes');
 
 const router = express.Router();
 
-router.use('/equipment', equipmentRoutes);
 router.use('/bookings', bookingRoutes);
 router.use('/users', userRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/equipment', equipmentRoutes);
+
+
 
 module.exports = router;

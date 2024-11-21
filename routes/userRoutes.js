@@ -7,6 +7,9 @@ router.route('/')
     .get(userController.getAllUsers)
     .post(userController.createUser);
 
+router.route('/:id/PersonalDetails')
+    .put(userController.updatePersonalDetails);
+
 router.route('/:id')
     .get(userController.getUserById)
     .put(userController.updateUser)
@@ -15,7 +18,6 @@ router.route('/:id')
 router.route('/:id/preferences')
     .put(userController.updatePreferences);
 
-router.route('/:id/PersonalDetails')
-    .put(userController.updatePersonalDetails);
+
 
 module.exports = router;
