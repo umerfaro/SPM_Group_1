@@ -1,0 +1,22 @@
+Create Equipment: POST /api/equipment
+List Equipment: GET /api/equipment
+Update Equipment: PUT /api/equipment/:id
+Delete Equipment: DELETE /api/equipment/:id
+Search Equipment: GET /api/equipment with query parameters
+Update User Personal Details: PUT /api/users/:id/PersonalDetails 
+
+Available Query Parameters
+equipmentType - Filter by equipment type.
+location - Filter by location.
+minPrice - Minimum rental price.
+maxPrice - Maximum rental price.
+startDate - Start date for availability (format: YYYY-MM-DD).
+endDate - End date for availability (format: YYYY-MM-DD).  Example Searches
+Search by Equipment Type
+URL: http://localhost:3001/api/equipment?equipmentType=Harvester
+Search by Location and Price Range
+URL: http://localhost:3001/api/equipment?location=Texas&minPrice=100&maxPrice=150
+Search by Availability Dates
+URL: http://localhost:3001/api/equipment?startDate=2023-10-01&endDate=2023-10-10
+Sample Request in Thunder Client
+Create a new request.
