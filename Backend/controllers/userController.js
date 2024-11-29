@@ -1,5 +1,5 @@
 const User = require('../models/User');  // Assuming the model file is in the models directory
-
+const jwt = require('jsonwebtoken');
 const userController = {
     // Get all users
     async getAllUsers(req, res, next) {
@@ -23,6 +23,46 @@ const userController = {
             next({ status: 500, message: 'Internal Server Error', error });
         }
     },
+
+
+async loginUser(req, res, next) {
+  try {
+    const { username, password } = req.body;
+
+    // Find user by username
+    const user = await User.findOne({ username });
+    if (!user) {
+      return next({ status: 401, message: 'Invalid username or password' });
+    }
+
+    // Check if the password is correct
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return next({ status: 401, message: 'Invalid username or password' });
+    }
+
+    // Generate JWT token
+    const payload = {
+      userId: user._id,
+      username: user.username,
+      roles: user.roles,
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Optionally update last login time
+    user.lastLogin = new Date();
+    await user.save();
+
+    res.json({ token, user: payload });
+  } catch (error) {
+    console.error('Login error:', error);  // Log the actual error details
+    next({ status: 500, message: 'Internal Server Error', error });
+  }
+},
+
+
+
 
     // Create a new user
     async createUser(req, res, next) {

@@ -1,9 +1,10 @@
 const Booking = require('../models/Booking');
+const Equipment = require('../models/Equipment');  // Assuming the equipment model exists
 
 const bookingController = {
+    // Get all bookings with filters
     async getAllBookings(req, res, next) {
         try {
-            // Extract search and filter parameters from the query string
             const {
                 equipmentId,
                 renterId,
@@ -58,6 +59,7 @@ const bookingController = {
         }
     },
 
+    // Get booking by ID
     async getBookingById(req, res, next) {
         try {
             const booking = await Booking.findById(req.params.id)
@@ -72,6 +74,7 @@ const bookingController = {
         }
     },
 
+    // Create a new booking
     async createBooking(req, res, next) {
         try {
             const {
@@ -117,6 +120,7 @@ const bookingController = {
         }
     },
 
+    // Update a booking
     async updateBooking(req, res, next) {
         try {
             const {
@@ -164,15 +168,12 @@ const bookingController = {
             if (error.name === 'ValidationError') {
                 next({ status: 400, message: 'Validation Error', error });
             } else {
-                next({
-                    status: 500,
-                    message: 'Internal Server Error',
-                    error,
-                });
+                next({ status: 500, message: 'Internal Server Error', error });
             }
         }
     },
 
+    // Delete a booking
     async deleteBooking(req, res, next) {
         try {
             const booking = await Booking.findByIdAndDelete(req.params.id);

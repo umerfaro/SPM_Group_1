@@ -1,41 +1,32 @@
-const axios = require("axios");
-const BASE_URL = process.env.USER_MICROSERVICE_URL;
-const { responseUtils } = require("../utils");
+const jwt = require('jsonwebtoken');
 
-const authMiddleware = {
-  verifyToken: async () => {
-    try {
-      const response = await axios.get(`${BASE_URL}/auth/verifyToken`, {
-        headers: {
-          // Authorization header if needed
-        },
-        withCredentials: true, // if we are using cookie-based sessions
-      });
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Extract token
 
-      return responseUtils.handleResponse(response);
-    } catch (error) {
-      console.log(error);
-      return responseUtils.handleResponse(error.response);
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      console.error(err);
+      return res.status(403).json({ message: 'Forbidden' });
     }
-  },
-
-  verifyFarmer: async () => {
-    try {
-      const response = await axios.get(`${BASE_URL}/auth/verifyFarmer`, {
-        headers: {
-          // Authorization header if needed
-        },
-        withCredentials: true, // if we are using cookie-based sessions
-      });
-
-      return responseUtils.handleResponse(response);
-    } catch (error) {
-      console.log(error);
-      return responseUtils.handleResponse(error.response);
-    }
-  },
-
-  // Add more middleware functions as needed
+    req.user = user; // Attach user info to request
+    next();
+  });
 };
 
-module.exports = authMiddleware;
+const verifyFarmer = (req, res, next) => {
+  if (req.user && req.user.roles.includes('Farmer')) {
+    next();
+  } else {
+    res.status(403).json({ message: 'Forbidden: Access is allowed only to Farmers' });
+  }
+};
+
+module.exports = {
+  authenticateToken,
+  verifyFarmer,
+};

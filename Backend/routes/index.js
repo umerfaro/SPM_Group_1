@@ -11,6 +11,4 @@ router.use('/users', userRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/equipment', equipmentRoutes);
 
-
-
 module.exports = router;
