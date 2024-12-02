@@ -16,6 +16,8 @@ import { Toaster } from './components/ui/toaster';
 import Service from './Comps/service/service';
 import Tools from './Comps/service/tools';
 import Chat from './Comps/collaboration/Chat';
+import { store } from "../store/store";
+import { Provider } from 'react-redux';
 
 function ProtectedRoute({ children }) {
   const isAuthenticated = true; // Replace with actual authentication check
@@ -68,9 +70,11 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    <Provider store={store}>
     <CartProvider>
       <RouterProvider router={router} />
       <Chat />
     </CartProvider>
+    </Provider>
   </StrictMode>
 );

@@ -14,6 +14,8 @@ import {
   Instagram,
 } from 'lucide-react';
 import { useState } from 'react';
+import Header from './header/header';
+import Footer from './footer/footer';
 
 function SearchIcon(props) {
   return (
@@ -62,46 +64,7 @@ function Home() {
   };
   return (
     <div className="min-h-screen w-full flex flex-col">
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-6">
-            <Link
-              to="/"
-              className="text-xl font-bold text-green-600 hover:text-green-700 transition-colors"
-            >
-              AgriLink
-            </Link>
-            {/* Navigation Links */}
-            <nav className="hidden md:flex items-center gap-6">
-              {[
-                { name: 'Home', path: '/' },
-                { name: 'About', path: '/about' },
-                { name: 'Services', path: '/services' },
-                { name: 'MarketPlace', path: '/marketplace' },
-                { name: 'News', path: '/news' },
-                { name: 'Blog', path: '/blog' },
-                { name: 'Contact', path: '/contact' },
-              ].map((item, index) => (
-                <Link
-                  key={index}
-                  to={item.path}
-                  className="text-sm hover:text-green-600 transition-colors"
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button size="icon" variant="ghost">
-              <SearchIcon className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant="ghost">
-              <ShoppingCartIcon className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Header/>
 
       {/* Hero Section */}
       <section className="relative h-[600px]">
@@ -303,68 +266,7 @@ function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white mt-12">
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <h4 className="text-lg font-semibold mb-4">AgGro</h4>
-              <p className="text-gray-400 text-sm">
-                Your trusted source for fresh produce.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Explore</h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link to="#" className="text-gray-400 hover:text-white">
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="text-gray-400 hover:text-white">
-                    Products
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="text-gray-400 hover:text-white">
-                    Contact
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Help</h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link to="#" className="text-gray-400 hover:text-white">
-                    Shipping
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="text-gray-400 hover:text-white">
-                    Returns
-                  </Link>
-                </li>
-                <li>
-                  <Link to="#" className="text-gray-400 hover:text-white">
-                    FAQ
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Newsletter</h4>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter your email"
-                  className="bg-gray-800 border-gray-700"
-                />
-                <Button variant="secondary">Subscribe</Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer/>
     </div>
   );
 }
