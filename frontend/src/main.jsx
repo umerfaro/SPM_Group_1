@@ -16,7 +16,7 @@ import { Toaster } from './components/ui/toaster';
 import Service from './Comps/service/service';
 import Tools from './Comps/service/tools';
 import Chat from './Comps/collaboration/Chat';
-import { store } from "../store/store";
+import { store } from "./store/store";
 import { Provider } from 'react-redux';
 
 function ProtectedRoute({ children }) {
@@ -68,13 +68,16 @@ const router = createBrowserRouter([
   },
 ]);
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <Provider store={store}>
-    <CartProvider>
-      <RouterProvider router={router} />
-      <Chat />
-    </CartProvider>
-    </Provider>
-  </StrictMode>
-);
+function Root() {
+  return (
+    <StrictMode>
+      {/* <AuthProvider> */}
+      <CartProvider>
+        <RouterProvider router={router} />
+      </CartProvider>
+      {/* </AuthProvider> */}
+    </StrictMode>
+  );
+}
+
+createRoot(document.getElementById('root')).render(<Root />);

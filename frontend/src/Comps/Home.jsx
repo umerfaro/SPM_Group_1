@@ -14,8 +14,8 @@ import {
   Instagram,
 } from 'lucide-react';
 import { useState } from 'react';
-import Header from './header/header';
-import Footer from './footer/footer';
+import Header from './UserHeader';
+import Footer from './Footer';
 
 function SearchIcon(props) {
   return (
