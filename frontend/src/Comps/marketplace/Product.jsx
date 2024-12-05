@@ -1,27 +1,33 @@
-// src/Comps/marketplace/Product.jsx
+
 import React, { useState, useEffect } from 'react';
+
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+
 import Header from '../header/Header.jsx';
 import Footer from '../footer/Footer.jsx';
 
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext'; // Import the useAuth hook
 
+
 function Product() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
+
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const { user, token } = useAuth(); // Access user and token from AuthContext
 
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+
         const response = await axios.get(`http://localhost:3001/api/equipment/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -29,17 +35,21 @@ function Product() {
         });
         setProduct(response.data);
         console.log('Fetched product:', response.data); // Verify owner field
+
       } catch (error) {
         console.error('Error fetching product:', error);
       }
     };
 
     fetchProduct();
+
   }, [id, token]);
+
 
   const handleAddToCart = (selectedProduct) => {
     // Logic for adding the product to the cart
     console.log('Added to cart:', selectedProduct);
+
     // Implement cart functionality as needed
   };
 
@@ -136,6 +146,7 @@ function Product() {
     }
   };
 
+
   if (!product) {
     return <div>Loading...</div>;
   }
@@ -144,16 +155,19 @@ function Product() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
+
       <div
         className="h-48 bg-cover bg-center flex items-center justify-center"
         style={{ backgroundImage: "url('/placeholder.svg?height=192&width=1920')" }}
       >
+
         <h1 className="text-4xl font-bold text-white">Product Details</h1>
       </div>
 
       <main className="container mx-auto px-4 py-8">
         <div className="grid md:grid-cols-2 gap-8">
           <div className="bg-white p-8 rounded-lg">
+
             <img
               src={product.images[0]}
               alt={product.equipmentType}
@@ -161,10 +175,12 @@ function Product() {
               height={400}
               className="mx-auto"
             />
+
           </div>
 
           <div className="space-y-6">
             <h2 className="text-3xl font-bold">{product.equipmentType}</h2>
+
             <p className="text-2xl font-semibold text-primary mt-2">
               ${product.rentalPricePerDay.toFixed(2)} per day
             </p>
@@ -228,6 +244,7 @@ function Product() {
                 disabled={product.status === 'rented out'}
               >
                 Rent Out
+
               </Button>
             </div>
 
@@ -239,9 +256,11 @@ function Product() {
             </Card>
           </div>
         </div>
+
       </main>
 
       <Footer />
+
     </div>
   );
 }

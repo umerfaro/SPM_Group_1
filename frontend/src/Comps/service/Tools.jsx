@@ -5,8 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Star } from 'lucide-react';
-import Header from '../header/header';
-import Footer from '../footer/footer';
+import Header from '../UserHeader';
+import Footer from '../Footer';
 
 // Mock Data (Replace with actual API call)
 const mockProducts = [

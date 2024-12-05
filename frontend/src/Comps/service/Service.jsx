@@ -4,8 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Star } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import Header from '../header/header';
-import Footer from '../footer/footer';
+import Header from '../UserHeader';
+import Footer from '../Footer';
 
 // Icon Components
 function SearchIcon(props) {

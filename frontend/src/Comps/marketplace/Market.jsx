@@ -1,10 +1,11 @@
-// src/Comps/marketplace/Market.jsx
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Star } from 'lucide-react';
+
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Header from '../header/Header.jsx';
@@ -19,6 +20,7 @@ function Market() {
     maxPrice: 100,
     startDate: '',
     endDate: '',
+
     availabilityStatus: 'available', // Ensures only available products
     search: '', // Add search filter
   });
@@ -71,6 +73,7 @@ function Market() {
         setEquipmentTypes([]);
       }
     };
+
 
     fetchProducts();
   }, [filters]);
@@ -146,6 +149,7 @@ function Market() {
                   equipmentTypes.map((category, index) => (
                     <button
                       key={index}
+
                       className={`block text-sm text-left w-full hover:text-green-600 ${
                         filters.equipmentType === category ? 'font-bold' : ''
                       }`}
@@ -154,6 +158,7 @@ function Market() {
                           ...prev,
                           equipmentType: prev.equipmentType === category ? '' : category, // Toggle filter
                         }))
+
                       }
                     >
                       {category}
