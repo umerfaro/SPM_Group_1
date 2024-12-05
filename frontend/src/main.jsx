@@ -1,5 +1,6 @@
 // src/main.jsx
-import { StrictMode, useEffect, useState } from 'react';
+import React from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   RouterProvider,
@@ -17,71 +18,31 @@ import Service from './Comps/service/service';
 import Tools from './Comps/service/tools';
 import Chat from './Comps/collaboration/Chat';
 import { store } from "../store/store";
-import { Provider, useSelector} from 'react-redux';
-import { jwtDecode } from "jwt-decode";
-
-// function ProtectedRoute({ children }) {
-//   const isAuthenticated = true; // Replace with actual authentication check
-//   return isAuthenticated ? children : <Navigate to="/signup" />;
-// }
-function ProtectedRoute({ children }) {
-  const token = useSelector((state) => state.users.token);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const checkToken = () => {
-      try {
-        if (!token) {
-          setIsAuthenticated(false);
-          return;
-        }
-        const decoded = jwtDecode(token);
-        const currentTime = Date.now() / 1000; // Current time in seconds
-        if (decoded.exp < currentTime) {
-          setIsAuthenticated(false); // Token is expired
-          localStorage.clear();
-        } else {
-          setIsAuthenticated(true); // Token is valid
-        }
-      } catch (error) {
-        setIsAuthenticated(false); // Invalid token
-        localStorage.clear();
-      }
-    };
-    console.log('came here');
-
-    checkToken();
-  }, [token]); // Dependency on `token`
-
-  return isAuthenticated ? children : <Navigate to="/signup" />;
-}
-
-
-
+import { Provider } from 'react-redux';
+import { AuthProvider } from './context/AuthContext'; // Import AuthProvider
+import ProtectedRoute from './components/ProtectedRoute.jsx'; // Import ProtectedRoute
 
 const router = createBrowserRouter([
   { path: '/signup', element: <LoginSignup /> },
+  { path: '/login', element: <LoginSignup /> }, // Add /login route
   {
     path: '/',
-    element: (
-
-        <Home />
-    ),
+    element: <Home />,
   },
   {
     path: '/marketplace',
     element: (
-      // <ProtectedRoute>
+      <ProtectedRoute>
         <Market />
-      // </ProtectedRoute>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/marketplace/product/:id',
     element: (
-      // <ProtectedRoute>
+      <ProtectedRoute>
         <Product />
-      // </ProtectedRoute>
+      </ProtectedRoute>
     ),
   },
   {
@@ -100,15 +61,23 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  // Add a catch-all route for undefined paths
+  {
+    path: '*',
+    element: <Navigate to="/" replace />,
+  },
 ]);
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
-    <CartProvider>
-      <RouterProvider router={router} />
-      <Chat />
-    </CartProvider>
+      <AuthProvider> {/* Wrap with AuthProvider */}
+        <CartProvider>
+          <RouterProvider router={router} />
+          <Chat />
+          <Toaster /> {/* Include Toaster for notifications */}
+        </CartProvider>
+      </AuthProvider>
     </Provider>
   </StrictMode>
 );

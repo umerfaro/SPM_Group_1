@@ -6,11 +6,11 @@ const router = express.Router();
 
 router.route('/')
   .get(equipmentController.getAllEquipment)
-  .post(authenticateToken, verifyFarmer, equipmentController.createEquipment);
+  .post(authenticateToken, equipmentController.createEquipment);
 
 router.route('/:id')
   .get(equipmentController.getEquipmentById)
-  .put(authenticateToken, verifyFarmer, equipmentController.updateEquipment)
-  .delete(authenticateToken, verifyFarmer, equipmentController.deleteEquipment);
+  .put( equipmentController.updateEquipment)
+  .delete(authenticateToken, equipmentController.deleteEquipment);
 
 module.exports = router;

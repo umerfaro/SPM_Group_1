@@ -1,10 +1,12 @@
+// src/Auth/LoginSignup.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaGoogle } from 'react-icons/fa';
-import { Button } from '@/components/ui/button'; // Assuming you have a Button component
-import { useDispatch, useSelector } from 'react-redux';
-import { setToken } from '../../store/UsersSlice';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '../context/AuthContext'; // Update the import path
+import { useDispatch } from 'react-redux';
+import { setToken as setReduxToken } from '../../store/UsersSlice'; // If you still need to use Redux
 
 const LoginSignup = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,17 +15,15 @@ const LoginSignup = () => {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const token = useSelector((state) => state.users.token);
+  const { token, user, login } = useAuth(); // Destructure from AuthContext
+  const dispatch = useDispatch();
 
-
-  // USING DISPATCH TO GET DATA FROM REDUX
-  const dispatch=useDispatch();;
   // Check if user is already logged in
   useEffect(() => {
-    if (token!=='') {
+    if (token && user) {
       navigate('/');
     }
-  }, []);
+  }, [token, user, navigate]);
 
   const handleToggle = () => {
     setIsLogin(!isLogin);
@@ -51,28 +51,36 @@ const LoginSignup = () => {
     }
 
     setLoading(true);
-
+    console.log('Name:', fullName.trim().toLowerCase());
     try {
       const endpoint = isLogin
         ? 'http://localhost:3001/api/users/login'
         : 'http://localhost:3001/api/users/signup';
       const payload = isLogin
         ? { email, password }
-        : { email, password, fullName };
+        : { email, password, fullName, username: fullName.trim().toLowerCase() };
 
       const response = await axios.post(endpoint, payload);
 
-      // Save token and redirect on success
-      // dispatch();
-      
-      localStorage.setItem('token', response.data.token);
+      if (isLogin) {
+        // For login, response should include token and user data
+        const { token, user } = response.data;
+        login(token, user);
+        dispatch(setReduxToken(token)); // If you still want to set Redux token
+      } else {
+        // For signup, you might want to log the user in automatically
+        const { token, user } = response.data;
+        login(token, user);
+        dispatch(setReduxToken(token)); // If you still want to set Redux token
+      }
+
       alert(`${isLogin ? 'Login' : 'Signup'} successful!`);
-      dispatch(setToken(response.data.token));
       navigate('/');
     } catch (error) {
       console.error('Authentication error:', error);
       alert(
-        error.response?.data?.message || `${isLogin ? 'Login' : 'Signup'} failed. Please try again.`
+        error.response?.data?.message ||
+          `${isLogin ? 'Login' : 'Signup'} failed. Please try again.`
       );
     } finally {
       setLoading(false);
