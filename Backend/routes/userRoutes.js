@@ -9,6 +9,7 @@ router.route('/')
 
 // Add the login route
 router.post('/login', userController.loginUser);
+router.post('/signup', userController.createUser);
 
 router.route('/:id/PersonalDetails')
   .put(userController.updatePersonalDetails);

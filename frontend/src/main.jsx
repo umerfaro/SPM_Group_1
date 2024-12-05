@@ -1,5 +1,5 @@
 // src/main.jsx
-import { StrictMode } from 'react';
+import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   RouterProvider,
@@ -17,37 +17,71 @@ import Service from './Comps/service/service';
 import Tools from './Comps/service/tools';
 import Chat from './Comps/collaboration/Chat';
 import { store } from "../store/store";
-import { Provider } from 'react-redux';
+import { Provider, useSelector} from 'react-redux';
+import { jwtDecode } from "jwt-decode";
 
+// function ProtectedRoute({ children }) {
+//   const isAuthenticated = true; // Replace with actual authentication check
+//   return isAuthenticated ? children : <Navigate to="/signup" />;
+// }
 function ProtectedRoute({ children }) {
-  const isAuthenticated = true; // Replace with actual authentication check
+  const token = useSelector((state) => state.users.token);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkToken = () => {
+      try {
+        if (!token) {
+          setIsAuthenticated(false);
+          return;
+        }
+        const decoded = jwtDecode(token);
+        const currentTime = Date.now() / 1000; // Current time in seconds
+        if (decoded.exp < currentTime) {
+          setIsAuthenticated(false); // Token is expired
+          localStorage.clear();
+        } else {
+          setIsAuthenticated(true); // Token is valid
+        }
+      } catch (error) {
+        setIsAuthenticated(false); // Invalid token
+        localStorage.clear();
+      }
+    };
+    console.log('came here');
+
+    checkToken();
+  }, [token]); // Dependency on `token`
+
   return isAuthenticated ? children : <Navigate to="/signup" />;
 }
+
+
+
 
 const router = createBrowserRouter([
   { path: '/signup', element: <LoginSignup /> },
   {
     path: '/',
     element: (
-      <ProtectedRoute>
+
         <Home />
-      </ProtectedRoute>
     ),
   },
   {
     path: '/marketplace',
     element: (
-      <ProtectedRoute>
+      // <ProtectedRoute>
         <Market />
-      </ProtectedRoute>
+      // </ProtectedRoute>
     ),
   },
   {
     path: '/marketplace/product/:id',
     element: (
-      <ProtectedRoute>
+      // <ProtectedRoute>
         <Product />
-      </ProtectedRoute>
+      // </ProtectedRoute>
     ),
   },
   {

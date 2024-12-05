@@ -27,24 +27,23 @@ const userController = {
 
 async loginUser(req, res, next) {
   try {
-    const { username, password } = req.body;
-
-    // Find user by username
-    const user = await User.findOne({ username });
+    const { email, password } = req.body;
+    // Find user by email
+    const user = await User.findOne({ email });
     if (!user) {
-      return next({ status: 401, message: 'Invalid username or password' });
+      return next({ status: 401, message: 'Invalid email or password' });
     }
 
     // Check if the password is correct
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return next({ status: 401, message: 'Invalid username or password' });
+      return next({ status: 401, message: 'Invalid email or password' });
     }
 
     // Generate JWT token
     const payload = {
       userId: user._id,
-      username: user.username,
+      email: user.email,
       roles: user.roles,
     };
 
@@ -53,7 +52,7 @@ async loginUser(req, res, next) {
     // Optionally update last login time
     user.lastLogin = new Date();
     await user.save();
-
+    console.log(payload);
     res.json({ token, user: payload });
   } catch (error) {
     console.error('Login error:', error);  // Log the actual error details
@@ -67,10 +66,39 @@ async loginUser(req, res, next) {
     // Create a new user
     async createUser(req, res, next) {
         try {
-            const { userId, username, password, roles, status, personalDetails, preferences } = req.body;
+            // const { userId, email, password, roles, status, personalDetails, preferences } = req.body;
+            // const user = new User({
+            //     userId,
+            //     email,
+            //     password,
+            //     roles,
+            //     status,
+            //     personalDetails,
+            //     preferences,
+            // });
+            const { email, password,  status, preferences } = req.body;
+            const lastUser = await User.findOne().sort({ userId: -1 }).limit(1);
+            let userId = 1; // Default starting ID
+    
+            // If there's a last user, increment the highest userId to generate the next
+            if (lastUser) {
+                userId = lastUser.userId + 1;
+            }
+            const roles ="Admin";
+            const personalDetails = {
+                firstName: "John",
+                lastName: "Doe",
+                contactInfo: {
+                  email: "john.doe@example.com",
+                  phone: "123-456-7890",
+                  _id: "6749c5ba099c365b38d0ef8a",
+                },
+                address : "123 Main St, Anytown, USA",
+              };
+
             const user = new User({
                 userId,
-                username,
+                email,
                 password,
                 roles,
                 status,
@@ -80,6 +108,7 @@ async loginUser(req, res, next) {
             await user.save();
             res.status(201).json(user);
         } catch (error) {
+            console.log(error);
             if (error.name === 'ValidationError') {
                 next({ status: 400, message: 'Validation Error', error });
             } else {

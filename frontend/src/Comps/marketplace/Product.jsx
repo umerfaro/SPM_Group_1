@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -126,19 +126,23 @@ function ShoppingCartIcon(props) {
 }
 
 function Product() {
-  const { id } = useParams();
-  const [product, setProduct] = useState(null);
+  // const { id } = useParams();
+  const { state: product } = useLocation();
+  
+  // const [product, setProduct] = useState(null);
   const [cartItems, setCartItems] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [showToast, setShowToast] = useState(false);
 
+
+
   // Fetch product data based on the ID
-  useEffect(() => {
-    const fetchedProduct = mockProducts.find(
-      (product) => product.id === parseInt(id)
-    );
-    setProduct(fetchedProduct);
-  }, [id]);
+  // useEffect(() => {
+  //   const fetchedProduct = mockProducts.find(
+  //     (product) => product.id === parseInt(id)
+  //   );
+  //   setProduct(fetchedProduct);
+  // }, [id]);
 
   const handleAddToCart = (selectedProduct) => {
     const cartItem = {
@@ -190,18 +194,18 @@ function Product() {
             <div>
               <h2 className="text-3xl font-bold">{product.name}</h2>
               <p className="text-2xl font-semibold text-primary mt-2">
-                ${product.price.toFixed(2)}
+                ${product.rentalPricePerDay}
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               {[...Array(Math.round(product.rating))].map((_, index) => (
                 <Star
                   key={index}
                   className="w-4 h-4 fill-primary text-primary"
                 />
               ))}
-            </div>
+            </div> */}
 
             <div className="flex items-center gap-4">
               <div className="flex items-center border rounded">

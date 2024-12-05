@@ -6,6 +6,8 @@ import { Star } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../header/header';
 import Footer from '../footer/footer';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 // Icon Components
 function SearchIcon(props) {
@@ -88,81 +90,81 @@ function TwitterIcon(props) {
 }
 
 function Market() {
+  const [equipment, setEquipment] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [priceRange, setPriceRange] = useState([0, Infinity]); // Default to show all products
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const navigate = useNavigate();
+
+  // Function to handle product click and navigate with selected product
   const handleProductClick = (id) => {
-    // Navigate to the product page with the specified id
-    navigate(`/marketplace/product/${id}`);
+    const selectedProduct = equipment.find((product) => product._id === id);
+    if (selectedProduct) {
+      navigate(`/marketplace/product/${id}`, { state: selectedProduct });
+    } else {
+      console.error('Product not found!');
+    }
   };
-  const products = [
-    {
-      id: 1,
-      name: 'Apples',
-      price: 2.99,
-      rating: 4.5,
-      image: '/placeholder.svg?height=200&width=200',
-    },
-    {
-      id: 2,
-      name: 'Bananas',
-      price: 1.99,
-      rating: 4.3,
-      image: '/placeholder.svg?height=200&width=200',
-    },
-    {
-      id: 3,
-      name: 'Carrots',
-      price: 1.49,
-      rating: 4.4,
-      image: '/placeholder.svg?height=200&width=200',
-    },
-    {
-      id: 4,
-      name: 'Garlic',
-      price: 0.99,
-      rating: 4.2,
-      image: '/placeholder.svg?height=200&width=200',
-    },
-    {
-      id: 5,
-      name: 'Grapes',
-      price: 3.99,
-      rating: 4.6,
-      image: '/placeholder.svg?height=200&width=200',
-    },
-    {
-      id: 6,
-      name: 'Lettuce',
-      price: 1.99,
-      rating: 4.3,
-      image: '/placeholder.svg?height=200&width=200',
-    },
-    {
-      id: 7,
-      name: 'Onions',
-      price: 1.29,
-      rating: 4.1,
-      image: '/placeholder.svg?height=200&width=200',
-    },
-    {
-      id: 8,
-      name: 'Potatoes',
-      price: 2.49,
-      rating: 4.4,
-      image: '/placeholder.svg?height=200&width=200',
-    },
-    {
-      id: 9,
-      name: 'Red Grapes',
-      price: 4.99,
-      rating: 4.7,
-      image: '/placeholder.svg?height=200&width=200',
-    },
-  ];
+
+  // Fetch equipment data on component mount
+  useEffect(() => {
+    const fetchEquipment = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/equipment');
+        
+        const transformedData = response.data.map((item) => ({
+          id: item._id,
+          name: item.equipmentType,
+          price: item.rentalPricePerDay,
+          rating: 4.5,
+          image: item.images?.[0] || '/placeholder.svg?height=200&width=200',
+        }));
+  
+        setProducts(transformedData);
+        setEquipment(response.data);
+        setFilteredProducts(transformedData); // Set filteredProducts to all products initially
+        setLoading(false);
+      } catch (err) {
+        setError(err.message || 'An error occurred');
+        setLoading(false);
+      }
+    };
+  
+    fetchEquipment();
+  }, []);
+  
+  useEffect(() => {
+    // Only filter products when the price range or products change
+    if (products.length > 0) {
+      filterProductsByPrice(priceRange);
+    }
+  }, [priceRange, products]);
+  
+  // Function to handle price range change
+  const handlePriceChange = (value) => {
+    setPriceRange(value);
+  };
+  
+  // Function to handle the 'Go' button click for price filter
+  const handleApplyPriceFilter = () => {
+    filterProductsByPrice(priceRange);
+  };
+  
+  // Function to filter products by price range
+  const filterProductsByPrice = (range) => {
+    const filtered = products.filter(
+      (product) => product.price >= range[0] && product.price <= range[1]
+    );
+    setFilteredProducts(filtered);
+  };
+  
 
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
-      <Header/>
+      <Header />
 
       {/* Hero */}
       <div className="relative h-48 bg-[url('/placeholder.svg')] bg-cover bg-center">
@@ -181,37 +183,63 @@ function Market() {
           <aside className="space-y-6">
             <div>
               <h2 className="mb-4 font-semibold">Price</h2>
-              <Slider defaultValue={[50]} max={100} step={1} />
+              <Slider
+                defaultValue={priceRange}
+                max={100}
+                step={1}
+                onChange={handlePriceChange}
+              />
               <div className="mt-2 flex items-center gap-2">
-                <Input placeholder="Min" type="number" />
+                <Input
+                  placeholder="Min"
+                  type="number"
+                  value={priceRange[0]}
+                  onChange={(e) =>
+                    setPriceRange([Number(e.target.value), priceRange[1]])
+                  }
+                />
                 <span>-</span>
-                <Input placeholder="Max" type="number" />
-                <Button size="sm" variant="secondary">
+                <Input
+                  placeholder="Max"
+                  type="number"
+                  value={priceRange[1]}
+                  onChange={(e) =>
+                    setPriceRange([priceRange[0], Number(e.target.value)])
+                  }
+                />
+                <Button size="sm" variant="secondary" onClick={handleApplyPriceFilter}>
                   Go
                 </Button>
               </div>
             </div>
-            <div>
+
+            {/* <div>
               <h2 className="mb-4 font-semibold">Categories</h2>
               <div className="space-y-2">
-                {['Fresh Vegetables', 'Fresh Fruits', 'Organic Foods'].map(
-                  (category, index) => (
-                    <Link
-                      key={index}
-                      to="#"
-                      className="block text-sm hover:text-green-600"
-                    >
-                      {category}
-                    </Link>
-                  )
-                )}
+                {["Fresh Vegetables", "Fresh Fruits", "Organic Foods"].map((category, index) => (
+                  <Link key={index} to="#" className="block text-sm hover:text-green-600">
+                    {category}
+                  </Link>
+                ))}
               </div>
-            </div>
+            </div> */}
+
+            {/* <div className="space-y-4">
+              <h2 className="mb-4 font-semibold">Filtered Products</h2>
+              {filteredProducts.map((product) => (
+                <div key={product.id} className="product-item">
+                  <h3>{product.name}</h3>
+                  <img src={product.image} alt={product.name} />
+                  <p>Price: ${product.price}</p>
+                  <p>Rating: {product.rating}</p>
+                </div>
+              ))}
+            </div> */}
           </aside>
 
           {/* Product Grid */}
           <div className="col-span-3 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <Card
                 key={product.id}
                 className="overflow-hidden cursor-pointer"
@@ -220,23 +248,15 @@ function Market() {
                 <CardContent className="p-4">
                   <img
                     alt={product.name}
-                    className="mb-4 aspect-square rounded-lg object-cover"
-                    height={200}
                     src={product.image}
-                    width={200}
+                    className="w-full h-48 object-cover mb-4"
                   />
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">{product.name}</h3>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="ml-1 text-sm text-gray-600">
-                        {product.rating}
-                      </span>
-                    </div>
+                  <h2 className="text-xl font-semibold">{product.name}</h2>
+                  <p className="mt-2 text-gray-500">Price: ${product.price}</p>
+                  <div className="mt-2 flex items-center">
+                    <Star className="text-yellow-500" />
+                    <span className="ml-1">{product.rating}</span>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    ${product.price.toFixed(2)}
-                  </p>
                 </CardContent>
               </Card>
             ))}
@@ -245,7 +265,7 @@ function Market() {
       </main>
 
       {/* Footer */}
-      <Footer/>
+      <Footer />
     </div>
   );
 }
