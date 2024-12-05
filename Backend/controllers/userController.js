@@ -23,49 +23,55 @@ const userController = {
             next({ status: 500, message: 'Internal Server Error', error });
         }
     },
+    
+    async getCurrentUser(req, res, next) {
+        try {
+          if (!req.user) {
+            return res.status(401).json({ message: 'Not authorized' });
+          }
+          res.json(req.user);
+        } catch (error) {
+          next(error);
+        }
+      },
 
+    async loginUser(req, res, next) {
+      try {
+        const { email, password } = req.body;
+        // Find user by email
+        const user = await User.findOne({ email });
+        if (!user) {
+          return next({ status: 401, message: 'Invalid email or password' });
+        }
 
-async loginUser(req, res, next) {
-  try {
-    const { username, password } = req.body;
+        // Check if the password is correct
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+          return next({ status: 401, message: 'Invalid email or password' });
+        }
 
-    // Find user by username
-    const user = await User.findOne({ username });
-    if (!user) {
-      return next({ status: 401, message: 'Invalid username or password' });
-    }
+        // Generate JWT token
+        const payload = {
+          userId: user._id,
+          email: user.email,
+          roles: user.roles,
+        };
 
-    // Check if the password is correct
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return next({ status: 401, message: 'Invalid username or password' });
-    }
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    // Generate JWT token
-    const payload = {
-      userId: user._id,
-      username: user.username,
-      roles: user.roles,
-    };
-
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-    // Optionally update last login time
-    user.lastLogin = new Date();
-    await user.save();
-
-    res.json({ token, user: payload });
-  } catch (error) {
-    console.error('Login error:', error);  // Log the actual error details
-    next({ status: 500, message: 'Internal Server Error', error });
-  }
-},
-
-
-
-
-    // Create a new user
-    async createUser(req, res, next) {
+        // Optionally update last login time
+        user.lastLogin = new Date();
+        await user.save();
+        console.log(payload);
+        res.json({ token, user: payload });
+      } catch (error) {
+        console.error('Login error:', error);  // Log the actual error details
+        next({ status: 500, message: 'Internal Server Error', error });
+      }
+    },
+    
+       // Create a new user
+       async createUser(req, res, next) {
         try {
             const { userId, username, password, roles, status, personalDetails, preferences } = req.body;
             const user = new User({
@@ -87,7 +93,7 @@ async loginUser(req, res, next) {
             }
         }
     },
-
+    
     async updateUser(req, res, next) {
         try {
             const updates = req.body;  

@@ -1,5 +1,6 @@
 const express = require('express');
 const userController = require('../controllers/userController');
+const {authenticateToken} = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
@@ -9,6 +10,8 @@ router.route('/')
 
 // Add the login route
 router.post('/login', userController.loginUser);
+router.post('/signup', userController.createUser);
+router.get('/current', authenticateToken, userController.getCurrentUser);
 
 router.route('/:id/PersonalDetails')
   .put(userController.updatePersonalDetails);

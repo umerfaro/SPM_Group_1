@@ -1,13 +1,15 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Star } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import Header from '../UserHeader';
-import Footer from '../Footer';
+
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import Header from '../header/Header.jsx';
+import Footer from '../footer/Footer.jsx';
 
 function Market() {
   const [products, setProducts] = useState([]);
@@ -18,26 +20,60 @@ function Market() {
     maxPrice: 100,
     startDate: '',
     endDate: '',
+
+    availabilityStatus: 'available', // Ensures only available products
+    search: '', // Add search filter
   });
+  const [equipmentTypes, setEquipmentTypes] = useState([]);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Extract search query from URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const search = params.get('search') || '';
+    setFilters((prev) => ({
+      ...prev,
+      search,
+    }));
+  }, [location.search]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get('http://localhost:3001/api/equipment', { params: filters });
-        if (Array.isArray(response.data)) 
-          {
+        if (Array.isArray(response.data)) {
+          let availableProducts = response.data.filter(
+            (product) => product.availabilityStatus === 'available'
+          );
 
-            console.log(response.data);
-          setProducts(response.data);
+          // Apply search filter (if backend doesn't handle it)
+          if (filters.search) {
+            const searchLower = filters.search.toLowerCase();
+            availableProducts = availableProducts.filter(
+              (product) =>
+                product.equipmentType.toLowerCase().includes(searchLower) ||
+                product.description.toLowerCase().includes(searchLower) ||
+                product.location.toLowerCase().includes(searchLower)
+            );
+          }
+
+          setProducts(availableProducts);
+
+          // Extract unique equipment types
+          const types = [...new Set(availableProducts.map((product) => product.equipmentType))];
+          setEquipmentTypes(types);
         } else {
           setProducts([]);
+          setEquipmentTypes([]);
         }
       } catch (error) {
         console.error('Error fetching products:', error);
         setProducts([]);
+        setEquipmentTypes([]);
       }
     };
+
 
     fetchProducts();
   }, [filters]);
@@ -67,6 +103,7 @@ function Market() {
       <main className="container mx-auto flex-1 px-4 py-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <aside className="space-y-6">
+            {/* Price Filter */}
             <div>
               <h2 className="mb-4 font-semibold">Price</h2>
               <Slider
@@ -102,25 +139,36 @@ function Market() {
                 </Button>
               </div>
             </div>
+            {/* Categories Filter */}
             <div>
               <h2 className="mb-4 font-semibold">Categories</h2>
               <div className="space-y-2">
-                {['Fresh Vegetables', 'Fresh Fruits', 'Organic Foods'].map(
-                  (category, index) => (
-                    <Link
+                {equipmentTypes.length === 0 ? (
+                  <p>No categories available.</p>
+                ) : (
+                  equipmentTypes.map((category, index) => (
+                    <button
                       key={index}
-                      to="#"
-                      className="block text-sm hover:text-green-600"
+
+                      className={`block text-sm text-left w-full hover:text-green-600 ${
+                        filters.equipmentType === category ? 'font-bold' : ''
+                      }`}
                       onClick={() =>
-                        setFilters((prev) => ({ ...prev, equipmentType: category }))
+                        setFilters((prev) => ({
+                          ...prev,
+                          equipmentType: prev.equipmentType === category ? '' : category, // Toggle filter
+                        }))
+
                       }
                     >
                       {category}
-                    </Link>
-                  )
+                    </button>
+                  ))
                 )}
               </div>
             </div>
+            {/* Additional Filters (e.g., Location, Dates) */}
+            {/* You can add more filters here if needed */}
           </aside>
 
           <div className="col-span-3 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

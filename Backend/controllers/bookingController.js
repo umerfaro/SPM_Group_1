@@ -77,48 +77,46 @@ const bookingController = {
     // Create a new booking
     async createBooking(req, res, next) {
         try {
-            const {
-                equipment,
-                renter,
-                owner,
-                rentalPeriod,
-                totalPrice,
-                pickupTime,
-            } = req.body;
-
-            // Check if the equipment is available during the requested period
-            const conflictingBooking = await Booking.findOne({
-                equipment,
-                'rentalPeriod.startDate': { $lt: new Date(rentalPeriod.endDate) },
-                'rentalPeriod.endDate': { $gt: new Date(rentalPeriod.startDate) },
-            });
-
-            if (conflictingBooking) {
-                return next({
-                    status: 400,
-                    message: 'Equipment is not available during the selected period',
-                });
-            }
-
-            const booking = new Booking({
-                equipment,
-                renter,
-                owner,
-                rentalPeriod,
-                totalPrice,
-                pickupTime,
-            });
-
-            await booking.save();
-            res.status(201).json(booking);
+          const {
+            equipment,
+            renter,
+            owner,
+            rentalPeriod,
+            totalPrice,
+            pickupTime,
+          } = req.body;
+    
+          // Example: Check if required fields are missing
+          if (!equipment || !renter || !owner || !rentalPeriod || !totalPrice || !pickupTime) {
+            return res.status(400).json({ message: 'Missing required fields' });
+          }
+    
+          const conflictingBooking = await Booking.findOne({
+            equipment,
+            'rentalPeriod.startDate': { $lt: new Date(rentalPeriod.endDate) },
+            'rentalPeriod.endDate': { $gt: new Date(rentalPeriod.startDate) },
+          });
+    
+          if (conflictingBooking) {
+            return res.status(400).json({ message: 'Equipment is not available during the selected period' });
+          }
+    
+          const booking = new Booking({
+            equipment,
+            renter,
+            owner,
+            rentalPeriod,
+            totalPrice,
+            pickupTime,
+          });
+    
+          await booking.save();
+          res.status(201).json(booking);
         } catch (error) {
-            if (error.name === 'ValidationError') {
-                next({ status: 400, message: 'Validation Error', error });
-            } else {
-                next({ status: 500, message: 'Internal Server Error', error });
-            }
+          console.error(error);
+          res.status(500).json({ message: 'Internal Server Error', error });
         }
-    },
+      },
 
     // Update a booking
     async updateBooking(req, res, next) {

@@ -33,7 +33,8 @@ const PreferencesSchema = new mongoose.Schema({
 
 const UserSchema = new mongoose.Schema({
     userId: { type: String, required: true, unique: true },
-    username: { type: String, minlength: 3, maxlength: 30, required: true },
+    // username: { type: String, minlength: 3, maxlength: 30, required: true },
+    email: { type: String, minlength: 3, maxlength: 30, required: true },
     password: { type: String, required: true }, // Hashed password
     roles: {
         type: [String],

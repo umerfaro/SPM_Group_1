@@ -1,14 +1,29 @@
-import React, { useState } from 'react';
+// src/Auth/LoginSignup.jsx
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { FaGoogle } from 'react-icons/fa';
-import { Button } from '@/components/ui/button'; // Assuming you have a Button component
+import { Button } from '@/components/ui/button';
+import { useAuth } from '../context/AuthContext'; // Update the import path
+import { useDispatch } from 'react-redux';
+import { setToken as setReduxToken } from '../../store/UsersSlice'; // If you still need to use Redux
 
 const LoginSignup = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { token, user, login } = useAuth(); // Destructure from AuthContext
+  const dispatch = useDispatch();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    if (token && user) {
+      navigate('/');
+    }
+  }, [token, user, navigate]);
 
   const handleToggle = () => {
     setIsLogin(!isLogin);
@@ -17,15 +32,58 @@ const LoginSignup = () => {
     setFullName('');
   };
 
-  const handleSubmit = (e) => {
+  const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const isAuthSuccessful = true;
+    if (!validateEmail(email)) {
+      alert('Please enter a valid email address.');
+      return;
+    }
 
-    if (isAuthSuccessful) {
+    if (password.length < 6) {
+      alert('Password should be at least 6 characters long.');
+      return;
+    }
+
+    setLoading(true);
+    console.log('Name:', fullName.trim().toLowerCase());
+    try {
+      const endpoint = isLogin
+        ? 'http://localhost:3001/api/users/login'
+        : 'http://localhost:3001/api/users/signup';
+      const payload = isLogin
+        ? { email, password }
+        : { email, password, fullName, username: fullName.trim().toLowerCase() };
+
+      const response = await axios.post(endpoint, payload);
+
+      if (isLogin) {
+        // For login, response should include token and user data
+        const { token, user } = response.data;
+        login(token, user);
+        dispatch(setReduxToken(token)); // If you still want to set Redux token
+      } else {
+        // For signup, you might want to log the user in automatically
+        const { token, user } = response.data;
+        login(token, user);
+        dispatch(setReduxToken(token)); // If you still want to set Redux token
+      }
+
+      alert(`${isLogin ? 'Login' : 'Signup'} successful!`);
       navigate('/');
-    } else {
-      alert(`${isLogin ? 'Login' : 'Signup'} failed. Please try again.`);
+    } catch (error) {
+      console.error('Authentication error:', error);
+      alert(
+        error.response?.data?.message ||
+          `${isLogin ? 'Login' : 'Signup'} failed. Please try again.`
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,7 +100,10 @@ const LoginSignup = () => {
               ? 'Login to explore the best agricultural products and connect with farmers.'
               : 'Create an account to connect with top farmers and get the best deals.'}
           </p>
-          <button className="flex items-center gap-3 bg-white text-primary font-semibold py-3 px-6 rounded-lg hover:bg-accent hover:text-green-700 transition-colors">
+          <button
+            className="flex items-center gap-3 bg-white text-primary font-semibold py-3 px-6 rounded-lg hover:bg-accent hover:text-green-700 transition-colors"
+            onClick={() => alert('Google login not implemented')}
+          >
             <FaGoogle size={20} />
             Sign {isLogin ? 'In' : 'Up'} with Google
           </button>
@@ -95,9 +156,12 @@ const LoginSignup = () => {
 
             <Button
               type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors"
+              disabled={loading}
+              className={`w-full ${
+                loading ? 'bg-gray-400' : 'bg-green-600'
+              } hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors`}
             >
-              {isLogin ? 'Login' : 'Sign Up'}
+              {loading ? 'Please wait...' : isLogin ? 'Login' : 'Sign Up'}
             </Button>
           </form>
 
